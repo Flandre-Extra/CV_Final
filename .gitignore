@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pth
+checkpoints/
+results/
+dataset/preprocessed/
+dataset/labels_cartoon/
+*.jpg
+*.jpeg
+*.png
+*.bmp
+.DS_Store
+Thumbs.db
