@@ -1,4 +1,6 @@
+import argparse
 import os
+import random
 
 import cv2
 import numpy as np
@@ -45,10 +47,15 @@ def augment(image: np.ndarray) -> list[np.ndarray]:
     return results
 
 
-def main():
+def main(max_total: int | None = None):
     set_seed()
     items = collect_images(RAW_DIR)
     print(f"Found {len(items)} raw images")
+
+    if max_total and len(items) > max_total:
+        random.shuffle(items)
+        items = items[:max_total]
+        print(f"  Smoke test mode: limited to {max_total} images")
 
     # Single pass: read + sharp-check + preprocess, keep arrays to avoid 2x imread
     sharp_items = []
@@ -68,6 +75,8 @@ def main():
     if len(sharp_items) < 200:
         print(f"WARNING: Only {len(sharp_items)} sharp images. Need 300+ for good results.")
         print("Consider taking more photos or lowering LAPLACIAN_THRESHOLD.")
+        if max_total:
+            print("(Ignorable — smoke test with reduced dataset)")
 
     train_items, val_items, test_items = [], [], []
     categories = set(c for c, _ in sharp_items)
@@ -95,4 +104,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Preprocess raw images for CV_Final")
+    parser.add_argument("--max-total", type=int, default=None,
+                        help="Limit total images (smoke test: 32)")
+    args = parser.parse_args()
+    main(max_total=args.max_total)
