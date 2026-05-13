@@ -11,6 +11,29 @@ from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 
+def imread_any(path: str) -> np.ndarray | None:
+    """cv2.imread 的 Windows + 中文路径兼容版。失败返回 None。"""
+    try:
+        buf = np.fromfile(path, dtype=np.uint8)
+    except OSError:
+        return None
+    if buf.size == 0:
+        return None
+    return cv2.imdecode(buf, cv2.IMREAD_COLOR)
+
+
+def imwrite_any(path: str, image: np.ndarray, ext: str = ".jpg") -> bool:
+    """cv2.imwrite 的 Windows + 中文路径兼容版。"""
+    ok, buf = cv2.imencode(ext, image)
+    if not ok:
+        return False
+    try:
+        buf.tofile(path)
+    except OSError:
+        return False
+    return True
+
+
 def tensor_to_image(tensor: torch.Tensor, to_bgr: bool = True) -> np.ndarray:
     if tensor.dim() == 4:
         tensor = tensor[0]

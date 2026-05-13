@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from config import (AUG_BRIGHTNESS_FACTORS, BLUR_KERNEL, LAPLACIAN_THRESHOLD,
                     PREPROCESSED_DIR, RAW_DIR, SEED, TARGET_SIZE, set_seed)
+from utils import imread_any, imwrite_any
 
 
 def collect_images(raw_dir: str) -> list[tuple[str, str]]:
@@ -53,7 +54,7 @@ def main():
     sharp_items = []
     rejected = 0
     for category, path in tqdm(items, desc="Checking sharpness"):
-        img = cv2.imread(path)
+        img = imread_any(path)
         if img is None:
             print(f"WARNING: Failed to load {path}, skipping")
             continue
@@ -88,7 +89,7 @@ def main():
             images = augment(img) if split_name == "train" else [img]
             for aug_img in images:
                 fname = f"{category}_{count:04d}.jpg"
-                cv2.imwrite(os.path.join(split_dir, fname), aug_img)
+                imwrite_any(os.path.join(split_dir, fname), aug_img)
                 count += 1
         print(f"  {split_name}: {count} images saved")
 

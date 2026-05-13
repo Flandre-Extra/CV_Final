@@ -27,7 +27,11 @@ WEIGHT_DECAY = 1e-5
 EPOCHS = 200
 LR_STEP_SIZE = 50
 LR_GAMMA = 0.5
+# Windows 默认 0 避免多进程死锁；Linux / 稳定 Windows 可调 2-4 加速数据加载
 NUM_WORKERS = 0
+
+# StylizationDataset 预加载总字节上限（默认 8 GB）。超过则打印警告，提示切换到 lazy load
+MAX_PRELOAD_BYTES = 8 * 1024 ** 3
 
 RECON_W = 0.7
 TV_W = 0.2
@@ -42,6 +46,8 @@ def set_seed(seed: int = SEED) -> None:
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
     cv2.setRNGSeed(seed)
 
 

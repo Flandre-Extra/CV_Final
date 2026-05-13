@@ -1,10 +1,9 @@
 import os
 
-import cv2
 from torch.utils.data import Dataset
 
-from config import PREPROCESSED_DIR, LABELS_DIR
-from utils import image_to_tensor
+from config import PREPROCESSED_DIR, LABELS_DIR, MAX_PRELOAD_BYTES
+from utils import image_to_tensor, imread_any
 
 
 class StylizationDataset(Dataset):
@@ -17,14 +16,25 @@ class StylizationDataset(Dataset):
             [f for f in os.listdir(img_dir) if f.endswith((".jpg", ".png"))]
         )
         self.samples = []
+        total_bytes = 0
+        warned = False
         for fname in files:
-            img = cv2.imread(os.path.join(img_dir, fname))
-            label = cv2.imread(os.path.join(label_dir, fname))
+            img = imread_any(os.path.join(img_dir, fname))
+            label = imread_any(os.path.join(label_dir, fname))
             if img is None or label is None:
                 raise FileNotFoundError(
                     f"Failed to load {fname} from {img_dir} or {label_dir}"
                 )
-            self.samples.append((image_to_tensor(img), image_to_tensor(label)))
+            img_t = image_to_tensor(img)
+            label_t = image_to_tensor(label)
+            total_bytes += img_t.element_size() * img_t.nelement()
+            total_bytes += label_t.element_size() * label_t.nelement()
+            if not warned and total_bytes > MAX_PRELOAD_BYTES:
+                print(f"WARNING: StylizationDataset[{split}] preload > "
+                      f"{MAX_PRELOAD_BYTES / 1024 ** 3:.1f} GB RAM. "
+                      f"Consider lazy load or reduce augmentation.")
+                warned = True
+            self.samples.append((img_t, label_t))
 
     def __len__(self):
         return len(self.samples)

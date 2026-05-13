@@ -1,11 +1,11 @@
 import os
 import sys
 
-import cv2
 from tqdm import tqdm
 
 from config import LABELS_DIR, PREPROCESSED_DIR, set_seed
 from traditional import cartoonize
+from utils import imread_any, imwrite_any
 
 
 def generate_labels():
@@ -25,12 +25,12 @@ def generate_labels():
             any_processed = True
         for fname in tqdm(files, desc=f"Generating labels for {split}"):
             src_path = os.path.join(src_dir, fname)
-            img = cv2.imread(src_path)
+            img = imread_any(src_path)
             if img is None:
                 print(f"WARNING: Failed to load {src_path}, skipping")
                 continue
             cartoon = cartoonize(img)
-            cv2.imwrite(os.path.join(dst_dir, fname), cartoon)
+            imwrite_any(os.path.join(dst_dir, fname), cartoon)
 
         print(f"  {split}: {len(files)} labels generated")
 

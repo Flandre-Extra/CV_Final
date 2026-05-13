@@ -54,14 +54,17 @@ def validate(model: nn.Module,
 def save_checkpoint(model: nn.Module,
                     optimizer: torch.optim.Optimizer,
                     epoch: int, avg_loss: float,
-                    val_psnr: float, filename: str) -> None:
-    torch.save({
+                    val_psnr: float, filename: str,
+                    save_optimizer: bool = False) -> None:
+    payload = {
         "epoch": epoch,
         "model_state_dict": model.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
         "loss": avg_loss,
         "val_psnr": val_psnr,
-    }, os.path.join(CHECKPOINT_DIR, filename))
+    }
+    if save_optimizer:
+        payload["optimizer_state_dict"] = optimizer.state_dict()
+    torch.save(payload, os.path.join(CHECKPOINT_DIR, filename))
 
 
 def train_one_epoch(model: nn.Module,
@@ -143,7 +146,7 @@ def train():
             if val_psnr > best_psnr:
                 best_psnr = val_psnr
                 save_checkpoint(model, optimizer, epoch + 1, avg_loss, val_psnr,
-                                "best_model.pth")
+                                "best_model.pth", save_optimizer=True)
                 print(f"  New best PSNR: {best_psnr:.2f} dB")
 
     torch.save({"model_state_dict": model.state_dict()},

@@ -34,7 +34,7 @@ class ColorStatLoss(nn.Module):
         target_mean = target.mean(dim=[2, 3])
         pred_var = pred.var(dim=[2, 3], unbiased=False)
         target_var = target.var(dim=[2, 3], unbiased=False)
-        return (F.mse_loss(pred_mean, target_mean) + F.mse_loss(pred_var, target_var)) / 3.0
+        return F.mse_loss(pred_mean, target_mean) + F.mse_loss(pred_var, target_var)
 
 
 class MixedLoss(nn.Module):
