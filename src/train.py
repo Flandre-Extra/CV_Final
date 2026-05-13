@@ -49,6 +49,8 @@ def validate(model: nn.Module,
                 l_i = tensor_to_image(label[i])
                 total_psnr += calculate_psnr(p_i, l_i)
             total_samples += batch_samples
+    if total_samples == 0:
+        raise ValueError("Validation split is empty — check preprocessing output.")
     return total_loss / total_samples, total_psnr / total_samples
 
 

@@ -30,7 +30,8 @@ def generate_labels():
                 print(f"WARNING: Failed to load {src_path}, skipping")
                 continue
             cartoon = cartoonize(img)
-            imwrite_any(os.path.join(dst_dir, fname), cartoon)
+            if not imwrite_any(os.path.join(dst_dir, fname), cartoon):
+                raise IOError(f"Failed to write label: {dst_dir}/{fname}")
 
         print(f"  {split}: {len(files)} labels generated")
 

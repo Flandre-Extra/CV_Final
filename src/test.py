@@ -86,6 +86,10 @@ def evaluate():
             save_comparison_figure(img_np, trad_np, pred_np,
                                    os.path.join(comparison_dir, f"comparison_{i:03d}.png"))
 
+    if not dl_ssim_list:
+        print("ERROR: No test samples evaluated — check preprocessing output.")
+        sys.exit(1)
+
     print("\n" + "=" * 60)
     print("Evaluation Results (Test Set)")
     print("=" * 60)

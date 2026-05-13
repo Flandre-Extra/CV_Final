@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from skimage.metrics import structural_similarity as ssim
+
+from config import VAL_INTERVAL
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 
@@ -96,7 +98,7 @@ def plot_training_curves(losses: list[float],
     ax1.set_xlabel("Epoch")
     ax1.set_ylabel("Loss")
 
-    epochs = [(i + 1) * 10 for i in range(len(val_psnrs))]
+    epochs = [(i + 1) * VAL_INTERVAL for i in range(len(val_psnrs))]
     ax2.plot(epochs, val_psnrs, marker="o")
     ax2.set_title("Validation PSNR")
     ax2.set_xlabel("Epoch")

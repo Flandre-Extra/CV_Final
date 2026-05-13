@@ -102,7 +102,8 @@ def main(max_total: int | None = None):
             images = augment(img) if split_name == "train" else [img]
             for aug_img in images:
                 fname = f"{category}_{count:04d}.jpg"
-                imwrite_any(os.path.join(split_dir, fname), aug_img)
+                if not imwrite_any(os.path.join(split_dir, fname), aug_img):
+                    raise IOError(f"Failed to write: {split_dir}/{fname}")
                 count += 1
         print(f"  {split_name}: {count} images saved")
 
