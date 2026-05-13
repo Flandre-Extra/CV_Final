@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 
@@ -7,9 +8,9 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from config import (BATCH_SIZE, CHECKPOINT_DIR, EPOCHS, LEARNING_RATE,
-                    LR_GAMMA, LR_STEP_SIZE, NUM_WORKERS, RESULTS_DIR, SEED,
-                    WEIGHT_DECAY, set_seed)
+from config import (BATCH_SIZE, CHECKPOINT_DIR, EARLY_STOP_PATIENCE, EPOCHS,
+                    LEARNING_RATE, LR_GAMMA, LR_STEP_SIZE, NUM_WORKERS,
+                    RESULTS_DIR, SEED, VAL_INTERVAL, WEIGHT_DECAY, set_seed)
 from dataset import StylizationDataset
 from loss import MixedLoss
 from model import LightUNet
@@ -105,7 +106,7 @@ def train_one_epoch(model: nn.Module,
     return epoch_loss / total_samples
 
 
-def train():
+def train(epochs: int = EPOCHS):
     set_seed(SEED)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -128,26 +129,36 @@ def train():
     losses = []
     val_psnrs = []
     best_psnr = float("-inf")
+    no_improve = 0
 
-    for epoch in range(EPOCHS):
+    for epoch in range(epochs):
         avg_loss = train_one_epoch(model, train_loader, loss_fn, optimizer,
-                                   scaler, device, epoch + 1, EPOCHS)
+                                   scaler, device, epoch + 1, epochs)
         losses.append(avg_loss)
         scheduler.step()
 
-        if (epoch + 1) % 10 == 0:
+        if (epoch + 1) % VAL_INTERVAL == 0:
             val_loss, val_psnr = validate(model, val_loader, loss_fn, device)
             val_psnrs.append(val_psnr)
-            print(f"  Epoch {epoch+1:3d}/{EPOCHS} | Val Loss: {val_loss:.4f}, Val PSNR: {val_psnr:.2f} dB")
+            print(f"  Epoch {epoch+1:3d}/{epochs} | Val Loss: {val_loss:.4f}, Val PSNR: {val_psnr:.2f} dB")
 
             save_checkpoint(model, optimizer, epoch + 1, avg_loss, val_psnr,
                             f"model_epoch_{epoch+1:03d}.pth")
 
             if val_psnr > best_psnr:
                 best_psnr = val_psnr
+                no_improve = 0
                 save_checkpoint(model, optimizer, epoch + 1, avg_loss, val_psnr,
                                 "best_model.pth", save_optimizer=True)
                 print(f"  New best PSNR: {best_psnr:.2f} dB")
+            else:
+                no_improve += 1
+                print(f"  No improvement for {no_improve}/{EARLY_STOP_PATIENCE} checks")
+
+            if no_improve >= EARLY_STOP_PATIENCE:
+                print(f"Early stopping at epoch {epoch+1} (PSNR stalled for "
+                      f"{no_improve * VAL_INTERVAL} epochs)")
+                break
 
     torch.save({"model_state_dict": model.state_dict()},
                os.path.join(CHECKPOINT_DIR, "final_model.pth"))
@@ -162,4 +173,8 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+    parser = argparse.ArgumentParser(description="Train LightUNet for image stylization")
+    parser.add_argument("--epochs", type=int, default=EPOCHS,
+                        help=f"Override training epochs (default: {EPOCHS})")
+    args = parser.parse_args()
+    train(epochs=args.epochs)

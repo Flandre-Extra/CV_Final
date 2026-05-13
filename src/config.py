@@ -37,6 +37,10 @@ RECON_W = 0.7
 TV_W = 0.2
 COLOR_W = 0.1
 
+# 早停：连续 N 次验证 PSNR 未提升即停止（每次验证间隔 VAL_INTERVAL 个 epoch）
+EARLY_STOP_PATIENCE = 10
+VAL_INTERVAL = 10
+
 SEED = 42
 
 
