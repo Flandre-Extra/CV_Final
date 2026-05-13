@@ -10,16 +10,12 @@ import torch
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
-from config import RESULTS_DIR
-
 
 def tensor_to_image(tensor: torch.Tensor, to_bgr: bool = True) -> np.ndarray:
     if tensor.dim() == 4:
         tensor = tensor[0]
     img = tensor.detach().cpu().numpy()
     img = np.transpose(img, (1, 2, 0))
-    if img.min() < 0:
-        img = (img + 1) / 2
     img = np.clip(img * 255, 0, 255).astype(np.uint8)
     if img.shape[2] == 3 and to_bgr:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)

@@ -45,6 +45,14 @@ def evaluate():
     comparison_dir = os.path.join(RESULTS_DIR, "comparisons")
     os.makedirs(comparison_dir, exist_ok=True)
 
+    if device.type == "cuda" and len(test_ds) > 0:
+        warmup_img, _ = test_ds[0]
+        warmup_img = warmup_img.unsqueeze(0).to(device)
+        with torch.no_grad():
+            for _ in range(3):
+                _ = model(warmup_img)
+            torch.cuda.synchronize()
+
     for i, (img_t, label_t) in enumerate(tqdm(test_loader, desc="Evaluating")):
         img_t = img_t.to(device)
         label_np = tensor_to_image(label_t[0])

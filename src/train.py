@@ -1,8 +1,6 @@
 import json
 import os
 
-import cv2
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.cuda.amp import GradScaler, autocast
@@ -15,7 +13,7 @@ from config import (BATCH_SIZE, CHECKPOINT_DIR, EPOCHS, LEARNING_RATE,
 from dataset import StylizationDataset
 from loss import MixedLoss
 from model import LightUNet
-from utils import calculate_psnr, plot_training_curves
+from utils import calculate_psnr, plot_training_curves, tensor_to_image
 
 
 def build_dataloaders() -> tuple[DataLoader, DataLoader]:
@@ -45,16 +43,9 @@ def validate(model: nn.Module,
             loss, _ = loss_fn(pred, label)
             batch_samples = img.size(0)
             total_loss += loss.item() * batch_samples
-            pred_np = pred.detach().cpu().numpy()
-            label_np = label.detach().cpu().numpy()
             for i in range(batch_samples):
-                p_i = np.transpose(pred_np[i], (1, 2, 0))
-                l_i = np.transpose(label_np[i], (1, 2, 0))
-                p_i = np.clip(p_i * 255, 0, 255).astype(np.uint8)
-                l_i = np.clip(l_i * 255, 0, 255).astype(np.uint8)
-                if p_i.shape[2] == 3:
-                    p_i = cv2.cvtColor(p_i, cv2.COLOR_RGB2BGR)
-                    l_i = cv2.cvtColor(l_i, cv2.COLOR_RGB2BGR)
+                p_i = tensor_to_image(pred[i])
+                l_i = tensor_to_image(label[i])
                 total_psnr += calculate_psnr(p_i, l_i)
             total_samples += batch_samples
     return total_loss / total_samples, total_psnr / total_samples
@@ -133,7 +124,7 @@ def train():
 
     losses = []
     val_psnrs = []
-    best_psnr = 0.0
+    best_psnr = float("-inf")
 
     for epoch in range(EPOCHS):
         avg_loss = train_one_epoch(model, train_loader, loss_fn, optimizer,

@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from config import (AUG_BRIGHTNESS_FACTORS, BLUR_KERNEL, LAPLACIAN_THRESHOLD,
-                    PREPROCESSED_DIR, RAW_DIR, TARGET_SIZE, set_seed)
+                    PREPROCESSED_DIR, RAW_DIR, SEED, TARGET_SIZE, set_seed)
 
 
 def collect_images(raw_dir: str) -> list[tuple[str, str]]:
@@ -72,8 +72,8 @@ def main():
     categories = set(c for c, _ in sharp_items)
     for cat in categories:
         cat_items = [(c, img) for c, img in sharp_items if c == cat]
-        cat_train, cat_tmp = train_test_split(cat_items, test_size=0.30, random_state=42)
-        cat_val, cat_test = train_test_split(cat_tmp, test_size=0.50, random_state=42)
+        cat_train, cat_tmp = train_test_split(cat_items, test_size=0.30, random_state=SEED)
+        cat_val, cat_test = train_test_split(cat_tmp, test_size=0.50, random_state=SEED)
         train_items.extend(cat_train)
         val_items.extend(cat_val)
         test_items.extend(cat_test)
