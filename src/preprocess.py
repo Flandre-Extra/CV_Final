@@ -80,8 +80,12 @@ def main(max_total: int | None = None):
 
     train_items, val_items, test_items = [], [], []
     categories = set(c for c, _ in sharp_items)
+    MIN_CAT = 4  # minimum samples per category for 70/15/15 split
     for cat in categories:
         cat_items = [(c, img) for c, img in sharp_items if c == cat]
+        if len(cat_items) < MIN_CAT:
+            print(f"  Skipping category '{cat}': only {len(cat_items)} sharp (< {MIN_CAT})")
+            continue
         cat_train, cat_tmp = train_test_split(cat_items, test_size=0.30, random_state=SEED)
         cat_val, cat_test = train_test_split(cat_tmp, test_size=0.50, random_state=SEED)
         train_items.extend(cat_train)

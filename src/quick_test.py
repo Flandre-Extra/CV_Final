@@ -5,7 +5,7 @@ import sys
 
 from config import BASE_DIR, SRC_DIR
 
-SMOKE_IMAGES = 32   # 8 per category
+SMOKE_IMAGES = 80   # ~20 per category (to survive ~50% sharp-rate filter)
 SMOKE_EPOCHS = 5
 
 

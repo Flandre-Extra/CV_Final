@@ -24,16 +24,20 @@ def evaluate():
 
     checkpoint_path = os.path.join(CHECKPOINT_DIR, "best_model.pth")
     if not os.path.exists(checkpoint_path):
-        print(f"ERROR: Checkpoint not found at {checkpoint_path}")
-        print("Run train.py first to generate best_model.pth.")
-        sys.exit(1)
+        checkpoint_path = os.path.join(CHECKPOINT_DIR, "final_model.pth")
+        if not os.path.exists(checkpoint_path):
+            print("ERROR: No checkpoint found (best_model.pth or final_model.pth)")
+            print("Run train.py first.")
+            sys.exit(1)
+        print("Using final_model.pth (no validation was run)")
 
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model = LightUNet().to(device)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
-    print(f"Loaded model from epoch {checkpoint['epoch']}, "
-          f"PSNR: {checkpoint['val_psnr']:.2f}")
+    epoch = checkpoint.get("epoch", "?")
+    val_psnr = checkpoint.get("val_psnr", float("nan"))
+    print(f"Loaded model from epoch {epoch}, val PSNR: {val_psnr:.2f}")
 
     test_ds = StylizationDataset("test")
     test_loader = DataLoader(test_ds, batch_size=1, shuffle=False)
