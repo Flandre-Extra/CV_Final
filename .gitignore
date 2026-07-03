@@ -1,14 +1,25 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
+
+# 模型权重（体积大，不入库）
 *.pth
 checkpoints/
-results/
-dataset/preprocessed/
-dataset/labels_cartoon/
+
+# 数据集（隐私 + 体积，不入库）
+dataset/
 *.jpg
 *.jpeg
-*.png
 *.bmp
+
+# 运行产物（gitignored 但 assets/ 放行精选展示图）
+results/
+
+# 放行 assets 展示图
+!assets/
+!assets/*.png
+
+# 系统
 .DS_Store
 Thumbs.db
