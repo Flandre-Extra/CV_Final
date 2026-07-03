@@ -71,7 +71,7 @@ python src/generate_labels.py         # 步骤 2：传统卡通化生成教师�
 python src/train.py                   # 步骤 3：训练 LightUNet（默认 200 轮）
 python src/train.py --epochs 10       # （可选）指定轮数，快速验证
 python src/test.py                    # 步骤 4：测试集评估 + 生成对比图
-python src/export_styles.py           # 额外：导出各风格独立效果图（方便选图）
+python src/export_styles.py           # 额外：导出各风格独立效果图
 ```
 
 ## 产出文件
